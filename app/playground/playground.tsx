@@ -5,6 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
+import { matchesTaskQuery, tasks, type TaskStatus } from "@/lib/tasks";
+import { TaskSearchStatus } from "./task-search-status";
+import { useTheme } from "./theme-context";
+import { ThemeToggle } from "./theme-toggle";
 
 const statuses = {
   todo: { label: "To do", tone: "neutral" },
@@ -12,8 +17,7 @@ const statuses = {
   done: { label: "Done", tone: "success" },
 } as const;
 
-type Status = keyof typeof statuses;
-type Filter = "all" | Status;
+type Filter = "all" | TaskStatus;
 
 const filters: { value: Filter; label: string }[] = [
   { value: "all", label: "All tasks" },
@@ -22,24 +26,16 @@ const filters: { value: Filter; label: string }[] = [
   { value: "done", label: statuses.done.label },
 ];
 
-const tasks: { id: number; title: string; project: string; status: Status }[] = [
-  { id: 1, title: "Build the shared button", project: "Design system", status: "done" },
-  { id: 2, title: "Create the task search", project: "Project Tracker", status: "inProgress" },
-  { id: 3, title: "Draft the project dashboard", project: "Project Tracker", status: "todo" },
-  { id: 4, title: "Review keyboard navigation", project: "Design system", status: "todo" },
-];
-
 export function Playground() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<Filter>("all");
-  const [isDark, setIsDark] = useState(false);
+  const { isDark } = useTheme();
 
-  const query = search.trim().toLowerCase();
+  const debouncedSearch = useDebounce(search, 300);
+  const query = debouncedSearch.trim().toLowerCase();
   const visibleTasks = tasks.filter((task) => {
     const matchesStatus = status === "all" || task.status === status;
-    const matchesSearch =
-      task.title.toLowerCase().includes(query) || task.project.toLowerCase().includes(query);
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesTaskQuery(task, query);
   });
 
   return (
@@ -50,9 +46,7 @@ export function Playground() {
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-3xl font-bold tracking-tight">Component Playground</h1>
-          <Button variant="secondary" aria-pressed={isDark} onClick={() => setIsDark(!isDark)}>
-            Dark mode
-          </Button>
+          <ThemeToggle />
         </header>
 
         <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -90,6 +84,7 @@ export function Playground() {
               <p role="status" className="mb-2 mt-5 text-sm text-(--ui-muted)">
                 {visibleTasks.length} of {tasks.length} tasks
               </p>
+              <TaskSearchStatus query={query} />
 
               {visibleTasks.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-(--ui-border) p-4 text-sm">
