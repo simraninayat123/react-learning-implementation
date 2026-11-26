@@ -6,16 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
-import { matchesTaskQuery, tasks, type TaskStatus } from "@/lib/tasks";
+import { matchesTaskQuery, tasks, taskStatuses as statuses, type TaskStatus } from "@/lib/tasks";
 import { TaskSearchStatus } from "./task-search-status";
 import { useTheme } from "./theme-context";
 import { ThemeToggle } from "./theme-toggle";
-
-const statuses = {
-  todo: { label: "To do", tone: "neutral" },
-  inProgress: { label: "In progress", tone: "info" },
-  done: { label: "Done", tone: "success" },
-} as const;
 
 type Filter = "all" | TaskStatus;
 

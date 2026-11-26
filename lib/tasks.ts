@@ -1,4 +1,10 @@
-export type TaskStatus = "todo" | "inProgress" | "done";
+export const taskStatuses = {
+  todo: { label: "To do", tone: "neutral" },
+  inProgress: { label: "In progress", tone: "info" },
+  done: { label: "Done", tone: "success" },
+} as const;
+
+export type TaskStatus = keyof typeof taskStatuses;
 
 export type Task = {
   id: number;
