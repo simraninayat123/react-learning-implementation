@@ -1,39 +1,22 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
-import { tasks } from "./tasks";
+import { readProjectStore } from "./project-store";
 
-type Project = {
-  id: string;
-  name: string;
-  description: string;
-};
+export const projectsTag = "projects";
 
-export const projects: Project[] = [
-  {
-    id: "project-tracker",
-    name: "Project Tracker",
-    description: "Build the workspace for browsing projects and keeping track of their tasks.",
-  },
-  {
-    id: "design-system",
-    name: "Design system",
-    description: "Build and review the shared UI components used across the workspace.",
-  },
-];
-
-export function findProject(id: string) {
-  return projects.find((project) => project.id === id);
+export async function listProjects() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(projectsTag);
+  return readProjectStore();
 }
 
-export function getProject(id: string) {
-  const project = findProject(id);
+export async function findProject(id: string) {
+  return (await listProjects()).find((project) => project.id === id);
+}
+
+export async function getProject(id: string) {
+  const project = await findProject(id);
   if (!project) notFound();
   return project;
-}
-
-export function getProjectTasks(project: Project) {
-  return tasks.filter((task) => task.project === project.name);
-}
-
-export function getProjectParams() {
-  return projects.map(({ id }) => ({ id }));
 }
